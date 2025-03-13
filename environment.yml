@@ -1,0 +1,7 @@
+name: security and privacy
+
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - -r requirements.txt
