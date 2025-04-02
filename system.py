@@ -55,19 +55,47 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Initialize failed_attempts in session if not already set
+    if 'failed_attempts' not in session:
+        session['failed_attempts'] = 0
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
+        # If failed_attempts >= 3, verify captcha
+        if session.get('failed_attempts', 0) >= 3:
+            captcha_input = request.form.get('captcha', '')
+            if captcha_input != session.get('captcha_answer'):
+                flash("Captcha incorrect!", "danger")
+                session['failed_attempts'] += 1
+                return redirect(url_for('login'))
+
+        # Perform user authentication (note: parameterized queries should be used in production)
         conn = get_db_connection()
-        cursor = conn.execute(f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")  # SQL Injection risk
+        cursor = conn.execute(f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")
         user = cursor.fetchone()
         conn.close()
+
         if user:
             session['user'] = username
-            flash('Login successful!', 'success')
+            flash("Login successful!", "success")
+            # Reset failed_attempts and remove captcha info upon successful login
+            session['failed_attempts'] = 0
+            session.pop('captcha_question', None)
+            session.pop('captcha_answer', None)
             return redirect(url_for('index'))
         else:
-            flash('Invalid credentials.', 'danger')
+            session['failed_attempts'] += 1
+            flash("Login failed, username or password incorrect!", "danger")
+            # If failed_attempts >= 3 and captcha is not yet generated, generate it
+            if session['failed_attempts'] >= 3 and 'captcha_question' not in session:
+                import random
+                a = random.randint(1, 9)
+                b = random.randint(1, 9)
+                session['captcha_question'] = f"{a} + {b} = ?"
+                session['captcha_answer'] = str(a + b)
+            return redirect(url_for('login'))
     return render_template('login.html')
 
 @app.route('/logout')
