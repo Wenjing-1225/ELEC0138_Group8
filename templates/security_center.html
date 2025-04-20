@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Security Center</title>
+</head>
+<body>
+    <h2> Security Center: Check Link Safety</h2>
+    <form method="POST">
+        <label for="url">Paste the URL from your email:</label><br>
+        <input type="text" name="url" id="url" required style="width: 400px;"><br><br>
+        <button type="submit">Check Link</button>
+    </form>
+
+    {% if result %}
+        <h3>Result for: {{ url }}</h3>
+        <p style="color: {% if '⚠️' in result %}red{% else %}green{% endif %}; font-weight: bold;">
+            {{ result }}
+        </p>
+    {% endif %}
+
+    <br><a href="/">← Back to Home</a>
+</body>
+</html>
