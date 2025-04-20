@@ -11,15 +11,31 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'upload
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 # Load phishing detection model
 model = joblib.load("phishing_model.pkl")
 
-def extract_features_from_url(url):
-    features = {
-        "URL_Length": len(url),
-        "Have_IP": 1 if url.split("://")[-1][0].isdigit() else -1,
-    }
-    return pd.DataFrame([features])
+with open("feature_columns.txt", "r") as f:
+    feature_columns = [line.strip() for line in f.readlines()]
+
+def extract_features_from_url(url: str): 
+    """
+    Features matching the trained model structure are extracted. 
+    Fields that cannot be inferred from the URL are filled with default values ​​(0).
+    """
+    features = {}
+
+    # Extracting features from the URL
+    features["Having_IP_Address"] = 1 if url.split("://")[-1][0].isdigit() else -1
+    features["URL_Length"] = len(url)
+    features["HTTPS_token"] = 1 if "https" in url.lower() else -1
+    features["Prefix_Suffix"] = -1 if "-" in url else 1
+
+    # Extracting other features
+    final_features = {col: features.get(col, 0) for col in feature_columns}
+
+    return pd.DataFrame([final_features])
+
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
@@ -39,6 +55,7 @@ with get_db_connection() as conn:
                     owner TEXT)''')
     conn.commit()
 
+
 @app.route('/')
 def index():
     files = []
@@ -57,7 +74,7 @@ def security_center():
         url_checked = request.form['url']
         features = extract_features_from_url(url_checked)
         prediction = model.predict(features)[0]
-        result = "This link may be a phishing site!" if prediction == 1 else "This link appears safe."
+        result = "This link might be a phishing site!" if prediction == 1 else "This link appears safe."
     return render_template('security_center.html', result=result, url=url_checked)
 
 @app.route('/register', methods=['GET', 'POST'])
