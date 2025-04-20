@@ -11,28 +11,34 @@ app_password = "mxzzhfsnlfbhcsox"
 
 # Email content
 msg = EmailMessage()
-msg["Subject"] = "【Notice】Abnormal account login, please verify your identity immediately"
+msg["Subject"] = "【Notice】New File Upload Notification - Action Required"
 msg["From"] = sender_email
 msg["To"] = receiver_email
 
-# HTML content
 body = f"""
 <html>
-<body>
-<p>Dear Customer,</p>
+<body style="font-family: Arial, sans-serif; color: #333;">
+    <h3>Hi there,</h3>
 
-<p>We have detected <strong>unusual login activity</strong> in your account.<br>
-To ensure the security of your account, please click the following link to verify:</p>
+    <p>You have received a <strong>new secure file</strong> via File Upload App.</p>
 
-<p><a href="{phishing_link}">{phishing_link}</a></p>
+    <p>To view or download the file, please verify your account by clicking the link below:</p>
 
-<p>If you did not initiate this login, please ignore this email.</p>
+    <p>
+        <a href="{phishing_link}" style="color: #d9534f; font-weight: bold;">
+            Access File Now
+        </a>
+    </p>
 
-<p>Best regards,<br>
-Bank Security Department</p>
+    <p>If you did not expect this file or do not recognize the sender, please ignore this message.</p>
+
+    <br>
+    <p>Regards,<br>
+    File Upload App Security Team</p>
 </body>
 </html>
 """
+
 
 msg.add_alternative(body, subtype='html')
 
