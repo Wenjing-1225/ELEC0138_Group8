@@ -23,18 +23,22 @@ def extract_features_from_url(url: str):
     Features matching the trained model structure are extracted. 
     Fields that cannot be inferred from the URL are filled with default values ​​(0).
     """
-    features = {}
-
-    # Extracting features from the URL
-    features["Having_IP_Address"] = 1 if url.split("://")[-1][0].isdigit() else -1
-    features["URL_Length"] = len(url)
-    features["HTTPS_token"] = 1 if "https" in url.lower() else -1
-    features["Prefix_Suffix"] = -1 if "-" in url else 1
+    
+    features = {
+    'having_IP_Address': 1 if url.split("://")[-1][0].isdigit() else -1,
+    'URL_Length': len(url),
+    'Shortining_Service': -1 if "bit.ly" in url or "tinyurl" in url else 1,
+    'having_At_Symbol': -1 if "@" in url else 1,
+    'double_slash_redirecting': -1 if url.count("//") > 1 else 1,
+    'Prefix_Suffix': -1 if "-" in url else 1,
+    'having_Sub_Domain': -1 if url.count(".") > 2 else 1,
+    'HTTPS_token': -1 if "https" not in url else 1
+}
 
     # Extracting other features
     final_features = {col: features.get(col, 0) for col in feature_columns}
-
     return pd.DataFrame([final_features])
+    
 
 
 def get_db_connection():
@@ -66,16 +70,34 @@ def index():
         conn.close()
     return render_template('index.html', files=files, user=session.get('user'))
 
+
 @app.route('/security_center', methods=['GET', 'POST'])
 def security_center():
     result = None
     url_checked = None
+
     if request.method == 'POST':
         url_checked = request.form['url']
         features = extract_features_from_url(url_checked)
-        prediction = model.predict(features)[0]
-        result = "This link might be a phishing site!" if prediction == 1 else "This link appears safe."
+
+        # Output the features used for prediction
+        proba = model.predict_proba(features)[0]
+        phishing_score = proba[1]
+
+        print("Features used for prediction:")
+        print(features)
+        print(f"Phishing Probability Score: {phishing_score:.4f}")
+
+        # Determine the result based on the phishing score
+        if phishing_score >= 0.9:
+            result = f"High risk phishing site!"
+        elif phishing_score >= 0.5:
+            result = f"Suspicious site."
+        else:
+            result = f"This site appears safe."
+
     return render_template('security_center.html', result=result, url=url_checked)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
