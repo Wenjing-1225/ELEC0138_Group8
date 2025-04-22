@@ -48,15 +48,15 @@ def get_db_connection():
 
 # Initialize database
 with get_db_connection() as conn:
-    conn.execute('''CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    username TEXT UNIQUE, 
-                    email TEXT UNIQUE,
-                    password TEXT)''')
-    conn.execute('''CREATE TABLE IF NOT EXISTS files (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    filename TEXT, 
-                    owner TEXT)''')
+    conn.execute('''Create table if not exists users (
+                    id integer primary key autoincrement, 
+                    username text unique, 
+                    email text unique,
+                    password text)''')
+    conn.execute('''Create table if not exists files (
+                    id integer primary key autoincrement, 
+                    filename text, 
+                    owner text)''')
     conn.commit()
 
 
