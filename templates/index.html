@@ -86,13 +86,13 @@
         <h3 class="text-center mt-4">Uploaded Files</h3>
         <div class="file-grid">
             {% for file in files %}
-                <div class="file-card" onclick="window.open('{{ url_for('uploaded_file', user=session['user'], filename=file) }}', '_blank')">
-                    {% if file.lower().endswith(('png', 'jpg', 'jpeg', 'gif')) %}
-                        <img src="{{ url_for('uploaded_file', user=session['user'], filename=file) }}" alt="{{ file }}">
+                <div class="file-card" onclick="window.open('{{ url_for('uploaded_file', filename=file.secure_name) }}', '_blank')">
+                    {% if file.original_name.lower().endswith(('png', 'jpg', 'jpeg', 'gif')) %}
+                        <img src="{{ url_for('uploaded_file', filename=file.secure_name) }}" alt="{{ file.original_name }}">
                     {% else %}
                         <img src="{{ url_for('static', filename='file-placeholder.png') }}" alt="Document">
                     {% endif %}
-                    <p>{{ file[:15] }}{% if file|length > 15 %}...{% endif %}</p>
+                    <p>{{ file.original_name[:15] }}{% if file.original_name|length > 15 %}...{% endif %}</p>
                 </div>
             {% endfor %}
         </div>

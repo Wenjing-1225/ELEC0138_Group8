@@ -3,6 +3,8 @@ import sqlite3
 import os
 import joblib
 import pandas as pd
+import uuid
+import hashlib
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -41,8 +43,6 @@ def extract_features_from_url(url: str):
     final_features = {col: features.get(col, 0) for col in feature_columns}
     return pd.DataFrame([final_features])
     
-
-
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
@@ -57,7 +57,8 @@ with get_db_connection() as conn:
                     password text)''')
     conn.execute('''Create table if not exists files (
                     id integer primary key autoincrement, 
-                    filename text, 
+                    filename text,
+                    original_filename text, 
                     owner text)''')
     conn.commit()
 
@@ -66,11 +67,15 @@ def index():
     files = []
     if 'user' in session:
         conn = get_db_connection()
-        cursor = conn.execute(f"SELECT filename FROM files WHERE owner = '{session['user']}'")
-        files = [row['filename'] for row in cursor.fetchall()]
+        cursor = conn.execute(f"SELECT filename, original_filename FROM files WHERE owner = '{session['user']}'")
+        for row in cursor.fetchall():
+            file_info = {
+                'secure_name': row['filename'],          # The randomized name shown on the link
+                'original_name': row['original_filename']  # The name shown on preview
+            }
+            files.append(file_info)
         conn.close()
     return render_template('index.html', files=files, user=session.get('user'))
-
 
 @app.route('/security_center', methods=['GET', 'POST'])
 def security_center():
@@ -98,7 +103,6 @@ def security_center():
             result = f"This site appears safe."
 
     return render_template('security_center.html', result=result, url=url_checked)
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -171,6 +175,18 @@ def logout():
     flash('Logged out successfully.', 'info')
     return redirect(url_for('index'))
 
+def hashed_filename(original_filename):
+    """Generate a secure, unpredictable filename while preserving the extension"""
+
+    _, ext = os.path.splitext(original_filename) # Get file extension
+
+    # Generate a UUID for random filename
+    random_name = str(uuid.uuid4())
+
+    # Create a hash for additional security
+    hash_obj = hashlib.sha256(random_name.encode())
+    return hash_obj.hexdigest() + ext
+
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'user' not in session:
@@ -190,25 +206,27 @@ def upload():
     user_folder = os.path.join(app.config['UPLOAD_FOLDER'], username)
     os.makedirs(user_folder, exist_ok=True)
 
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(user_folder, filename)
+    original_filename = secure_filename(file.filename)
+    secure_name = hashed_filename(original_filename)
+
+    filepath = os.path.join(user_folder, secure_name)
     file.save(filepath)
 
     conn = get_db_connection()
-    conn.execute(f"INSERT INTO files (filename, owner) VALUES ('{filename}', '{session['user']}')")
+    conn.execute("INSERT INTO files (filename, original_filename, owner) VALUES (?, ?, ?)", (secure_name, original_filename, session['user']))
     conn.commit()
     conn.close()
 
     flash('File uploaded successfully!', 'success')
     return redirect(url_for('index'))
 
-@app.route('/delete_file/<user>/<filename>', methods=['POST'])
+@app.route('/delete_file/<filename>', methods=['POST'])
 def delete_file(user, filename):
     if 'user' not in session or session['user'] != user:
         flash('Unauthorized action.', 'danger')
         return redirect(url_for('index'))
 
-    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user)
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], session['user'])
     file_path = os.path.join(user_folder, filename)
 
     if os.path.exists(file_path):
@@ -231,7 +249,7 @@ def uploaded_file(filename):
         abort(403)  # Unauthorized
 
     current_user = session['user']
-     
+    
     # Check if the user has access to this file
     conn = get_db_connection()
     cursor = conn.execute(f"SELECT * FROM files WHERE filename = '{filename}'")
@@ -256,14 +274,14 @@ def uploaded_file(filename):
     return send_from_directory(owner_folder, filename)
 
 @app.route('/get_file_preview/<filename>')
-def get_file_preview(user, filename):
+def get_file_preview(filename):
     extension = filename.split('.')[-1].lower()
     if extension in ['png', 'jpg', 'jpeg', 'gif']:
-        return url_for('uploaded_file', user=user, filename=filename)
+        return url_for('uploaded_file', filename=filename)
     elif extension in ['pdf', 'doc', 'docx', 'txt', 'ppt', 'pptx', 'xls', 'xlsx']:
-        return '<a href="' + url_for('uploaded_file', user=user, filename=filename) + '" class="btn btn-primary">View</a>'
+        return '<a href="' + url_for('uploaded_file', filename=filename) + '" class="btn btn-primary">View</a>'
     else:
-        return url_for('uploaded_file', user=user, filename=filename)
+        return url_for('uploaded_file', filename=filename)
 
 @app.route('/verify_url', methods=['POST'])
 def verify_url():
