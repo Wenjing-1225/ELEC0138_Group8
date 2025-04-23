@@ -11,11 +11,13 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'upload
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
+root_dir = os.path.dirname(os.path.abspath(__file__))
+model_dir = os.path.join(root_dir, "phishing_model.pkl")
+feature_dir =  os.path.join(root_dir, "feature_columns.txt")
 # Load phishing detection model
-model = joblib.load("phishing_model.pkl")
+model = joblib.load(model_dir)
 
-with open("feature_columns.txt", "r") as f:
+with open(feature_dir, "r") as f:
     feature_columns = [line.strip() for line in f.readlines()]
 
 def extract_features_from_url(url: str): 
@@ -54,7 +56,6 @@ with get_db_connection() as conn:
                     filename TEXT, 
                     owner TEXT)''')
     conn.commit()
-
 
 @app.route('/')
 def index():
@@ -200,15 +201,39 @@ def delete_file(user, filename):
 
     return redirect(url_for('index'))
 
-@app.route('/uploads/<user>/<path:filename>')
-def uploaded_file(user, filename):
-    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], user)
-    file_path = os.path.join(user_folder, filename)
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+
+    # Check if user is logged in
+    if 'user' not in session:
+        abort(403)  # Unauthorized
+
+    current_user = session['user']
+     
+    # Check if the user has access to this file
+    conn = get_db_connection()
+    cursor = conn.execute(f"SELECT * FROM files WHERE filename = '{filename}'")
+    file_info = cursor.fetchone()
+    conn.close()
+    
+    if not file_info:
+        abort(404)  # File not found
+    
+    # Only the owner can access their secure files
+    if file_info['owner'] != current_user:
+        abort(403)  # Access denied
+    
+    # Find the owner's secure folder
+    owner_folder = os.path.join(app.config['UPLOAD_FOLDER'], file_info['owner'])
+    
+    # Verify file exists
+    file_path = os.path.join(owner_folder, filename)
     if not os.path.exists(file_path):
         abort(404)
-    return send_from_directory(user_folder, filename)
 
-@app.route('/get_file_preview/<user>/<filename>')
+    return send_from_directory(owner_folder, filename)
+
+@app.route('/get_file_preview/<filename>')
 def get_file_preview(user, filename):
     extension = filename.split('.')[-1].lower()
     if extension in ['png', 'jpg', 'jpeg', 'gif']:
