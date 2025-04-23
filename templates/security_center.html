@@ -13,7 +13,7 @@
 
     {% if result %}
         <h3>Result for: {{ url }}</h3>
-        <p style="color: {% if '⚠️' in result %}red{% else %}green{% endif %}; font-weight: bold;">
+        <p style="color: {% if 'High risk' in result %}red{% elif 'Suspicious' in result %}orange{% else %}green{% endif %}; font-weight: bold;">
             {{ result }}
         </p>
     {% endif %}
