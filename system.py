@@ -5,6 +5,7 @@ import joblib
 import pandas as pd
 import uuid
 import hashlib
+import logging
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -16,8 +17,11 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 root_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(root_dir, "phishing_model.pkl")
 feature_dir =  os.path.join(root_dir, "feature_columns.txt")
+logging_dir = os.path.join(root_dir, "access_log")
 # Load phishing detection model
 model = joblib.load(model_dir)
+
+logging.basicConfig(filename=logging_dir, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 with open(feature_dir, "r") as f:
     feature_columns = [line.strip() for line in f.readlines()]
@@ -75,6 +79,9 @@ def index():
             }
             files.append(file_info)
         conn.close()
+        logging.info(f"User {session['user']} accessed index page with {len(files)} files")
+    else:
+        logging.info("Anonymous user accessed index page")
     return render_template('index.html', files=files, user=session.get('user'))
 
 @app.route('/security_center', methods=['GET', 'POST'])
@@ -93,6 +100,8 @@ def security_center():
         print("Features used for prediction:")
         print(features)
         print(f"Phishing Probability Score: {phishing_score:.4f}")
+
+        logging.info(f"User submitted URL for analysis: {url_checked} - Phishing score: {phishing_score:.4f}")
 
         # Determine the result based on the phishing score
         if phishing_score >= 0.9:
@@ -114,9 +123,11 @@ def register():
         try:
             conn.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, password))
             conn.commit()
+            logging.info(f"New user registered: {username}")
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
+            logging.warning(f"Registration failed (duplicate): {username} / {email}")
             flash('Username or email already taken.', 'danger')
         finally:
             conn.close()
@@ -136,11 +147,13 @@ def login():
             features = extract_features_from_url(url)
             prediction = model.predict(features)[0]
             if prediction == 1:
+                logging.warning(f"Phishing detected in login URL: {url}")
                 return render_template('warning.html', url=url)
 
         if session.get('failed_attempts', 0) >= 3:
             captcha_input = request.form.get('captcha', '')
             if captcha_input != session.get('captcha_answer'):
+                logging.warning(f"Failed CAPTCHA for user: {identifier}")
                 flash("Captcha incorrect!", "danger")
                 session['failed_attempts'] += 1
                 return redirect(url_for('login'))
@@ -152,6 +165,7 @@ def login():
 
         if user:
             session['user'] = user['username']
+            logging.info(f"User logged in: {user['username']}")
             flash("Login successful!", "success")
             session['failed_attempts'] = 0
             session.pop('captcha_question', None)
@@ -159,6 +173,7 @@ def login():
             return redirect(url_for('index'))
         else:
             session['failed_attempts'] += 1
+            logging.warning(f"Failed login attempt for: {identifier}")
             flash("Login failed, username/email or password incorrect!", "danger")
             if session['failed_attempts'] >= 3 and 'captcha_question' not in session:
                 import random
@@ -190,6 +205,7 @@ def hashed_filename(original_filename):
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'user' not in session:
+        logging.warning(f"Unauthorized file upload attempt")
         flash('You must be logged in to upload files.', 'danger')
         return redirect(url_for('login'))
 
@@ -217,12 +233,15 @@ def upload():
     conn.commit()
     conn.close()
 
+    logging.info(f"User {username} uploaded file: {original_filename} as {secure_name}")
+
     flash('File uploaded successfully!', 'success')
     return redirect(url_for('index'))
 
 @app.route('/delete_file/<filename>', methods=['POST'])
 def delete_file(user, filename):
     if 'user' not in session or session['user'] != user:
+        logging.warning(f"Unauthorized delete attempt by unknown user")
         flash('Unauthorized action.', 'danger')
         return redirect(url_for('index'))
 
@@ -235,8 +254,10 @@ def delete_file(user, filename):
         conn.execute(f"DELETE FROM files WHERE filename = '{filename}' AND owner = '{user}'")
         conn.commit()
         conn.close()
+        logging.info(f"User {session['user']} deleted file: {filename}")
         flash('File deleted successfully!', 'success')
     else:
+        logging.warning(f"User {session['user']} attempted to delete nonexistent file: {filename}")
         flash('File not found.', 'danger')
 
     return redirect(url_for('index'))
@@ -246,6 +267,7 @@ def uploaded_file(filename):
 
     # Check if user is logged in
     if 'user' not in session:
+        logging.warning(f"Unauthorized Access attempt to {filename}")
         abort(403)  # Unauthorized
 
     current_user = session['user']
@@ -257,12 +279,16 @@ def uploaded_file(filename):
     conn.close()
     
     if not file_info:
+        logging.info(f"User {current_user} atempted to access non-existent file")
         abort(404)  # File not found
-    
+
     # Only the owner can access their secure files
     if file_info['owner'] != current_user:
+        logging.info(f"User {current_user} atempted to access unauthorized file")
         abort(403)  # Access denied
     
+    logging.info(f"User {current_user} accessed file: {filename}")
+
     # Find the owner's secure folder
     owner_folder = os.path.join(app.config['UPLOAD_FOLDER'], file_info['owner'])
     
@@ -275,6 +301,11 @@ def uploaded_file(filename):
 
 @app.route('/get_file_preview/<filename>')
 def get_file_preview(filename):
+
+    if 'user' not in session:
+        logging.warning(f"Preview access attempt without login by unknown user")
+        abort(403)
+
     extension = filename.split('.')[-1].lower()
     if extension in ['png', 'jpg', 'jpeg', 'gif']:
         return url_for('uploaded_file', filename=filename)
@@ -289,6 +320,7 @@ def verify_url():
     features = extract_features_from_url(url)
     prediction = model.predict(features)[0]
     if prediction == 1:
+        logging.warning(f"Phishing link detected: {url}")
         return render_template('warning.html', url=url)
     else:
         return redirect('/login')
