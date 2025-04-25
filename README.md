@@ -2,9 +2,9 @@
 
 ## Overview
 
-This project aims to analyze and address security and privacy challenges in a web-based app (File Upload App) by applying threat modeling and mitigation methods. 
+This project aims to analyze and address Security and Privacy challenges in a web-based app (File Upload App) by applying threat modeling and mitigation methods. 
 
-Several cyber attacks targeting common vulnerabilities are designed and implemented. Also, relevant mitigation measures are also presented.
+Several cyber attacks targeting common vulnerabilities are designed and implemented. Also, relevant mitigation measures are presented.
 
 A vedio presentation of this project can be seen:
 
@@ -18,13 +18,15 @@ A vedio presentation of this project can be seen:
 
 ## Features
 
-├── Attack/                 # Contains different attacks and relevant mitigation methods.
-├── static/                 # Functions of uploading documents
-├── templates/              # HTML templates for the web interface
-├── environment.yml         # Conda environment definition
-├── initialize_db.py        # Script to initialize the database
-├── requirements.txt        # Python package dependencies
-└── system.py               # Main application script
+ELEC0138_Group8/
+├── Attack/            # Contains different attacks and relevant mitigation methods
+├── static/            # Functions of uploading documents
+├── templates/         # HTML templates for the web interface
+├── environment.yml    # Conda environment definition
+├── initialize_db.py   # Script to initialize the database
+├── requirements.txt   # Python package dependencies
+└── system.py          # Main application script
+
 
 
 ## Installation
