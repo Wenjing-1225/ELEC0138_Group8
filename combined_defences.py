@@ -22,7 +22,7 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'upload
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-root_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.join(os.path.dirname(__file__))
 model_dir = os.path.join(root_dir, "phishing_model.pkl")
 feature_dir = os.path.join(root_dir, "feature_columns.txt")
 logging_dir = os.path.join(root_dir, "access_log")

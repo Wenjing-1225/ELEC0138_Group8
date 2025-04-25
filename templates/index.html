@@ -87,12 +87,12 @@
         <div class="file-grid">
             {% for file in files %}
                 <div class="file-card" onclick="window.open('{{ url_for('uploaded_file', filename=file.secure_name) }}', '_blank')">
-                    {% if file.original_name.lower().endswith(('png', 'jpg', 'jpeg', 'gif')) %}
+					{% if file.original_name and file.original_name.lower().endswith(('png', 'jpg', 'jpeg', 'gif')) %}
                         <img src="{{ url_for('uploaded_file', filename=file.secure_name) }}" alt="{{ file.original_name }}">
                     {% else %}
                         <img src="{{ url_for('static', filename='file-placeholder.png') }}" alt="Document">
                     {% endif %}
-                    <p>{{ file.original_name[:15] }}{% if file.original_name|length > 15 %}...{% endif %}</p>
+					<p>{{ file.original_name[:15] if file.original_name else 'Unnamed' }}{% if file.original_name and file.original_name|length > 15 %}...{% endif %}</p>
                 </div>
             {% endfor %}
         </div>
