@@ -20,16 +20,14 @@ A vedio presentation of this project can be seen:(https://youtu.be/MD4qnzbECH4)
 
 ```
 ELEC0138_Group8/
-├── Attack/            # Contains different attacks and relevant mitigation methods
-├── static/            # Functions of uploading documents
-├── templates/         # HTML templates for the web interface
-├── original_system    # Contains original system with no defences files
-├── environment.yml    # Conda environment definition
-├── initialize_db.py   # Script to initialize the database
-├── requirements.txt   # Python package dependencies
+├── Attack/              # Contains different attacks and relevant mitigation methods
+├── original_system      # Contains original system with no defences files
+├── static/              # Functions of uploading documents
+├── templates/           # HTML templates for the web interface
 ├── combined_defences.py # System with all defences implemented
-└── system.py          # Main application script
-
+├── environment.yml      # Conda environment definition
+├── initialize_db.py     # Script to initialize the database
+└── requirements.txt     # Python package dependencies
 ```
 
 
