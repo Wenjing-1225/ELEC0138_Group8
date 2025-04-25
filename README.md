@@ -23,9 +23,11 @@ ELEC0138_Group8/
 ├── Attack/            # Contains different attacks and relevant mitigation methods
 ├── static/            # Functions of uploading documents
 ├── templates/         # HTML templates for the web interface
+├── original_system    # Contains original system with no defences files
 ├── environment.yml    # Conda environment definition
 ├── initialize_db.py   # Script to initialize the database
 ├── requirements.txt   # Python package dependencies
+├── combined_defences.py # System with all defences implemented
 └── system.py          # Main application script
 
 ```
