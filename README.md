@@ -27,6 +27,7 @@ ELEC0138_Group8/
 ├── initialize_db.py   # Script to initialize the database
 ├── requirements.txt   # Python package dependencies
 └── system.py          # Main application script
+
 ```
 
 
@@ -100,7 +101,11 @@ ELEC0138_Group8/
      2. Run `app.py`  
         → This will launch the phishing web application.
 
+   - **IDOR Attack Simulation**:
 
+     1. Run `image_attack.py`  
+     2. Stolen images will be stored in a separate folder, stolen_images
+        
 4. **Run the Defense System**
 
    - **Phishing Detection System**:
@@ -111,5 +116,9 @@ ELEC0138_Group8/
      2. Run `combined_defences.py`  
         → This starts the Flask web interface for users to input URLs and receive detection results in Security Center.
 
+   - **IDOR Defence Strategy**:
+
+     1. Run `combined_defences.py`  
+     2. This ensures, session based authentication, strict access control, logging and that filenames are securely hashed
 
 
