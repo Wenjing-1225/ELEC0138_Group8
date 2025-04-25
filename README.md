@@ -65,7 +65,7 @@ ELEC0138_Group8/
    Start the main application:
 
    ```bash
-   python system.py
+   python original_system/system.py
    ```
 
 
