@@ -1,3 +1,10 @@
 flask
+flask-limiter
+bcrypt
+joblib
+pandas
+scikit-learn
+beautifulsoup4
 requests
+email-validator
 kagglehub
