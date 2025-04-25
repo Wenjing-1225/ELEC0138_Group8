@@ -18,6 +18,7 @@ A vedio presentation of this project can be seen:
 
 ## Features
 
+```
 ELEC0138_Group8/
 ├── Attack/            # Contains different attacks and relevant mitigation methods
 ├── static/            # Functions of uploading documents
@@ -26,7 +27,7 @@ ELEC0138_Group8/
 ├── initialize_db.py   # Script to initialize the database
 ├── requirements.txt   # Python package dependencies
 └── system.py          # Main application script
-
+```
 
 
 ## Installation
@@ -67,5 +68,28 @@ ELEC0138_Group8/
 
 
    The web interface should now be accessible at `http://localhost:5000/`.
+
+
+4. **Run the Attack Simulation**
+
+   - **Phishing Simulation**:
+     
+     1. Run `send_phishing.py`  
+        → You can modify the `receiver_email` variable to the desired email address.  
+        *Please make sure that you have the recipient’s explicit consent before sending any simulated phishing emails.*
+
+     2. Run `app.py`  
+        → This will launch the phishing web application.
+
+
+4. **Run the Defense System**
+
+   - **Phishing Detection System**:
+
+     1. Run `model.py`  
+        → This initializes and loads the phishing detection model.
+
+     2. Run `system.py` 
+        → This starts the Flask web interface for users to input URLs and receive detection results in Security Center.
 
 
