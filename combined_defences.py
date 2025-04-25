@@ -25,8 +25,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 root_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(root_dir, "phishing_model.pkl")
 feature_dir = os.path.join(root_dir, "feature_columns.txt")
+logging_dir = os.path.join(root_dir, "access_log")
+
 # Load phishing detection model
 model = joblib.load(model_dir)
+
+logging.basicConfig(filename=logging_dir, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 with open(feature_dir, "r") as f:
     feature_columns = [line.strip() for line in f.readlines()]
