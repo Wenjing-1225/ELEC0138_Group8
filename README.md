@@ -1,4 +1,4 @@
-# ELEC0138 Group 8 – Phishing Website Detection System
+# ELEC0138 Group 8 – Security and Privacy challenges in a File Upload App
 
 ## Overview
 
