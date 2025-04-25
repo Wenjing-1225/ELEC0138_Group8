@@ -5,6 +5,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import joblib
+from pathlib import Path
+
+ROOT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 
 # Download the dataset
 path = kagglehub.dataset_download("isatish/phishing-dataset-uci-ml-csv")
@@ -28,7 +31,7 @@ X = df.drop("Result", axis=1)
 y = df["Result"]
 
 # Save feature column names to a file for inference use
-feature_columns_path = "feature_columns.txt"
+feature_columns_path = os.path.join(ROOT_DIR, "feature_columns.txt")
 with open(feature_columns_path, "w") as f:
     for col in X.columns:
         f.write(col + "\n")
@@ -47,6 +50,6 @@ print("Accuracy:", accuracy_score(y_test, y_pred))
 print(classification_report(y_test, y_pred))
 
 # Save the model
-model_path = "phishing_model.pkl"
+model_path = os.path.join(ROOT_DIR, "phishing_model.pkl")
 joblib.dump(model, model_path)
 print("The model has been saved as:", model_path)
