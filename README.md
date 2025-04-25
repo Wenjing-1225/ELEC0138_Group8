@@ -6,7 +6,7 @@ This project aims to analyze and address Security and Privacy challenges in a we
 
 Several cyber attacks targeting common vulnerabilities are designed and implemented. Also, relevant mitigation measures are presented.
 
-A vedio presentation of this project can be seen:
+A vedio presentation of this project can be seen:(https://youtu.be/MD4qnzbECH4)
 
 
 ## Group Members
@@ -30,7 +30,7 @@ ELEC0138_Group8/
 ```
 
 
-## Installation
+## Steps
 
 1. **Clone the Repository**
 
@@ -55,7 +55,6 @@ ELEC0138_Group8/
    ```bash
    pip install -r requirements.txt
    ```
-
 
 
 3. **Run the Application**
